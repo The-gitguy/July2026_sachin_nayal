@@ -1,0 +1,51 @@
+# Day 28 — Advanced Networking with VPCs and Peering
+
+##  Ansible — Set Up VPC Peering Between AWS Accounts
+
+```yaml
+- name: Setup VPC Peering Between Accounts
+  hosts: localhost
+  tasks:
+    - name: Create VPC peering connection
+      command: aws ec2 create-vpc-peering-connection --vpc-id vpc-12345678 --peer-vpc-id vpc-87654321
+
+#Terraform — VPC Peering and Route Tables
+resource "aws_vpc_peering_connection" "sachin_peering" {
+  vpc_id      = aws_vpc.sachin_vpc.id
+  peer_vpc_id = aws_vpc.peer_vpc.id
+}
+
+resource "aws_route" "sachin_route" {
+  route_table_id         = aws_route_table.sachin_rt.id
+  destination_cidr_block = "10.0.0.0/16"
+  vpc_peering_connection_id = aws_vpc_peering_connection.sachin_peering.id
+}
+
+Kubernetes — Multi-Cluster VPC Peering and Network Policy
+
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: sachin-vpc-policy
+spec:
+  podSelector:
+    matchLabels:
+      app: sachin-app
+  ingress:
+    - from:
+        - podSelector:
+            matchLabels:
+              app: sachin-db
+
+
+
+
+ Docker
+ 
+# Docker Save, Load & Backup
+docker save -o sachin-nginx.tar sachin-nginx
+
+docker load -i sachin-nginx.tar
+
+# Bash
+docker run --rm -v sachin-volume:/data -v $(pwd):/backup ubuntu tar czf /backup sachin-backup.tar.gz /data

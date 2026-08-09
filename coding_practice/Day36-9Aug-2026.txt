@@ -1,0 +1,131 @@
+# 1. Ansible — Install Nginx
+
+```yaml
+---
+- name: Install Nginx
+  hosts: all
+  become: true
+
+  tasks:
+    - name: Install Nginx
+      ansible.builtin.yum:
+        name: nginx
+        state: present
+
+    - name: Start Nginx
+      ansible.builtin.service:
+        name: nginx
+        state: started
+        enabled: true
+```
+
+# 2. Terraform — sachin EC2
+
+```hcl
+terraform {
+  required_providers {
+    aws = {
+      source  = "hashicorp/aws"
+      version = "~> 6.0"
+    }
+  }
+}
+
+provider "aws" {
+  region = "ap-south-1"
+}
+
+resource "aws_instance" "sachin_ec2" {
+  ami           = "ami-0f918f7e67a3323f0"
+  instance_type = "t3.micro"
+
+  tags = {
+    Name        = "sachin-EC2"
+    Environment = "Dev"
+    Project     = "sachin"
+  }
+}
+```
+
+# 3. Kubernetes — Deployment with 2 Replicas
+
+```yaml
+apiVersion: apps/v1
+kind: Deployment
+
+metadata:
+  name: sachin-app
+
+spec:
+  replicas: 2
+
+  selector:
+    matchLabels:
+      app: sachin
+
+  template:
+    metadata:
+      labels:
+        app: sachin
+
+    spec:
+      containers:
+        - name: sachin-container
+          image: nginx:latest
+          ports:
+            - containerPort: 80
+```
+
+# 4. Shell — Print Date and Uptime
+
+```bash
+#!/bin/bash
+
+echo "Current Date and Time:"
+date
+
+echo "System Uptime:"
+uptime
+```
+# Parameterized Builds
+
+## 🔹 Jenkins Pipeline — Parameterized
+You will learn how to **create parameterized builds in Jenkins**.
+
+pipeline {
+    agent any
+    parameters {
+        string(name: 'ENVIRONMENT', defaultValue: 'dev', description: 'Deployment Environment')
+    }
+    environment {
+        INSTITUTE_NAME = "sachin"
+    }
+    stages {
+        stage('Checkout') {
+            steps {
+                git url: 'https://github.com/sachin/sample-java-app.git'
+            }
+        }
+        stage('Deploy') {
+            steps {
+                sh 'echo "Deploying to $ENVIRONMENT by $INSTITUTE_NAME"'
+            }
+        }
+    }
+}
+
+## 🔹 GitLab CI — Parameterized via Variables
+You will learn how to **use variables to parameterize GitLab jobs**.
+
+stages:
+  - deploy
+
+variables:
+  INSTITUTE_NAME: "sachin"
+  ENVIRONMENT: "dev"
+
+deploy:
+  stage: deploy
+  image: alpine:latest
+  script:
+    - echo "Deploying to $ENVIRONMENT by $INSTITUTE_NAME"

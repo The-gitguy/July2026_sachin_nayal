@@ -1,0 +1,103 @@
+# Day17 - Loops, ALB , Namespace, Top Processes
+
+## Ansible - Create Multiple users in Loop
+
+---
+- name: Create multiple Users
+  hosts: all
+  become: yes
+
+  vars:
+    users:
+      -dev1
+      -dev2
+      -dev3
+
+  
+  tasks:
+    - name: Create users
+      user:
+        name:"{{ item }}"
+        state: present
+      loop: "{{ users }}"
+
+## Terraform - Application Load Balancer
+
+resource "aws_lb" "SachinALB"{
+  name          ="sachin-alb"
+  load_balancer_type = "application"
+  subnets            = {aws_subnet.Sachinsubnet.id}
+
+  tags ={
+    Name = "Sachin-ALB"
+  }
+}
+
+## Kubernetes - Namespace + Deployment
+
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: sachin-deploy
+  namespace: sachin-namespace
+
+spec:
+  replica: 2
+  selector:
+    matchlabels:
+      app: sachin
+  template:
+    metadata:
+      labels:
+        app: sachin
+
+    spec:
+      container:
+        - name: app
+          image: nginx
+
+## shell script - Top 5 memory Processes
+
+#!/bin/bash
+
+ps aux --sort=-%men | head -n 6
+
+# Deployment Simulation
+
+## Jenkins Pipeline -Simulated deployment
+"Simulate Deployment to different environments "
+
+pipeline{
+  agent any
+  parameters{
+    choice(name: 'ENVIRONMENT' , choices:['dev','staging','prod'], description : 'Deployment Environment')
+  }
+  environment {
+        INSTITUTE_NAME= "sachin"
+
+  }
+  stages{
+    stage('Deploy'){
+        steps {
+            sh 'echo "Deployment $INSTITUTE_NAME application to $ENVIRONMENT"'
+        }
+    }
+  }
+}
+
+##   gitLab CI -Deployment Simulation
+**simulate deployment in Gitlab CI using environment Variable**
+
+stages:
+  - deploy
+
+variables:
+  INSTITUTE_NAME: "sachin"
+  ENVIRONMENT: "staging"
+
+deploy:
+  stage: deploy 
+  image: alpine:latest
+  script:
+    - echo "Deployment $INSTITUTE_NAME APPLICATION TO $ENVIRONMENT"
+    

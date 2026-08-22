@@ -1,0 +1,107 @@
+# Day18 - Facts , Variable , Affinity, Log Archiving
+
+## Ansible -Use Ansible Facts
+
+--- 
+- name: Show system facts for sachin
+  hosts: all
+
+  tasks:
+    - name: Print OS info
+      debug:
+        var: ansible_facts['os_family']
+
+    - name: Print IP Address
+      debug:
+        var: ansible_facts['default_ipv4']['address']
+
+
+## Terraform -Variable , outputs, tfvars
+
+# variable.tf
+variable "instance_type" {
+  default= "c6a.12xlarge"
+
+}
+
+# main.tf
+resource "aws_instance" "SachinServer"{
+  ami          = "ami-0dwinaldiadwa"
+  intance_type = var.instance_type
+}
+
+# output.tf
+output "sachin_ip" {
+  value = aws_instance.SachinServer.public_ip
+}
+
+## Kubernetes - Node Affinity
+
+apiVersion: v1
+kind: Pod
+metadata: 
+  name: sachin-affinity
+spec:
+  affinity:
+    nodeAffinity:
+      requiredDuringSchedulingIgnoreDuringExecution:
+        nodeSelectorTerms:
+          - matchExpressions:
+              - Key: disktype
+                operator: In
+                values:
+                  - ssd
+
+
+  containers:
+    - name: web
+      image: nginx
+
+  ## shell script - Archive Log Files
+
+  #!/bin/bash
+
+  tar -czf /backup/sachin-logs-$(date +%F).tar.gz /var/log/
+  echo "Logs archived"
+
+## Rollback simulation
+
+## Jenkins Pipeline- Rollback on Failure
+pipeline{
+    agent any
+    environment {
+      INSTITUTE_NAME = "Sachin"
+    }
+    
+    stages{
+        stage('Deploy'){
+          steps{
+            script{
+                try{
+                  sh 'echo "Deploying $INSTITUTE_NAME application...." '
+                  sh 'exit 1' // simulate failure
+                } catch(Exception e){
+                    echo "Deployment failed. Rolling back $INSTITUTE_NAME application."
+                }
+             }
+          }
+        }
+    }
+}
+
+## GitLab CI — Rollback Simulation
+
+stages:
+  - deploy
+
+variables:
+  INSTITUTE_NAME: "sachin"
+
+deploy:
+  stage: deploy
+  image: alpine:latest
+  script:
+    - echo "Deploying $INSTITUTE_NAME application..."
+    - exit 1
+  after_script:
+    - echo "Deployment failed. Rolling back $INSTITUTE_NAME application..."
